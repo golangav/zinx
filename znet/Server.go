@@ -4,7 +4,6 @@ import (
 	"zinx/ziface"
 	"fmt"
 	"net"
-	"errors"
 )
 
 // IServer的接口实现，定义一个Server的服务器模块
@@ -17,18 +16,10 @@ type Server struct {
 	IP string
 	//服务器监听的端口
 	Port int
+	// 给当前的Server添加一个router，server注册的链接对应的处理业务
+	Router ziface.IRouter
 }
 
-// 定义当前客户端链接所绑定handle api
-func CallBackToClient(conn *net.TCPConn, data []byte, cnt int) error{
-	// 回显示功能
-	fmt.Println("callback...")
-	if _, err := conn.Write(data[:cnt]); err != nil{
-		fmt.Println("callback err", err)
-		return errors.New("CallBack error")
-	}
-	return nil
-}
 
 // 启动服务器
 func (s *Server) Start()  {
@@ -59,9 +50,9 @@ func (s *Server) Start()  {
 			}
 
 			// 将处理新连接的业务方法和conn进行绑定，得到我们的链接模块
-			dealConn := NewConnection(conn,cid, CallBackToClient)
+			dealConn := NewConnection(conn,cid, s.Router)
 			cid ++
-			go dealConn.start()
+			go dealConn.Start()
 
 		}
 	}()
@@ -85,12 +76,18 @@ func (s *Server) Serve()  {
 	select {}
 }
 
+// 路由功能：给当前的服务注册一个路由方法，供客户端的链接处理使用
+func (s *Server) AddRouter(router ziface.IRouter){
+	s.Router = router
+}
+
 func NewServer(name string) ziface.IServer  {
 	s := &Server{
 		Name:name,
 		IPVersion:"tcp4",
 		IP:"0.0.0.0",
 		Port:8999,
+		Router:nil,
 	}
 	return s
 }
