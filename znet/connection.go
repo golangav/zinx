@@ -4,6 +4,7 @@ import (
 	"net"
 	"zinx/ziface"
 	"fmt"
+	"zinx/utils"
 )
 
 // 链接的模块
@@ -45,7 +46,7 @@ func (c *Connection) StartReader()  {
 
 	for {
 		// 读取客户端的数据到buf中，最大512字节
-		buf := make([]byte, 512)
+		buf := make([]byte, utils.ConfigObj.MaxPackageSize)
 		_, err := c.Conn.Read(buf)
 		if err != nil{
 			fmt.Println("recv buf err", err)
