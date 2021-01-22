@@ -12,28 +12,14 @@ type PingRouter struct {
 }
 
 
-func (r *PingRouter) PreHandle(request ziface.IRequest){
-	fmt.Println("pre handle...")
-	_, err := request.GetConnection().GetTCPConnection().Write([]byte("before ping...\n"))
-	if err != nil{
-		fmt.Println("before ping error")
-	}
-}
-
 func (r *PingRouter) Handle(request ziface.IRequest){
-	fmt.Println("handle...")
-	_, err := request.GetConnection().GetTCPConnection().Write([]byte("handle... ping...\n"))
-	if err != nil{
-		fmt.Println("handle... ping error")
-	}
-}
+	fmt.Println("call router handle...")
 
-func (r *PingRouter) PostHandle(request ziface.IRequest){
-	fmt.Println("after handle...")
-	_, err := request.GetConnection().GetTCPConnection().Write([]byte("after ping...\n"))
+	err := request.GetConnection().SendMsg(1, []byte("ping...ping...ping"))
 	if err != nil{
-		fmt.Println("after handle...")
+		fmt.Println(err)
 	}
+
 }
 
 

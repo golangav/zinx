@@ -35,7 +35,7 @@ func (c *ConfigObject) Reload() {
 func init() {
 	ConfigObj = &ConfigObject{
 		Name:           "zinx server",
-		Version:        "1.0",
+		Version:        "0.5",
 		Host:           "127.0.0.1",
 		Port:           8009,
 		MaxConn:        1000,
