@@ -14,6 +14,8 @@ type ConfigObject struct {
 	Version        string
 	MaxConn        int
 	MaxPackageSize uint32
+	WorkerPoolSize   uint32
+	MaxWorkerTaskLen uint32
 }
 
 // 定义一个全局的对外ConfigObj
@@ -40,6 +42,8 @@ func init() {
 		Port:           8009,
 		MaxConn:        1000,
 		MaxPackageSize: 4096,
+		WorkerPoolSize:  10,
+		MaxWorkerTaskLen:1024,
 	}
 
 	ConfigObj.Reload()

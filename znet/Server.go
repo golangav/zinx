@@ -25,6 +25,9 @@ type Server struct {
 func (s *Server) Start() {
 
 	go func() {
+		// 开启消息队列和工作池
+		s.MsgHandle.StartWorkerPool()
+
 		// 获取一个TCP的Addr
 		addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
 		if err != nil {

@@ -4,6 +4,7 @@ import (
 	"zinx/ziface"
 	"strconv"
 	"fmt"
+	"zinx/utils"
 )
 
 /*
@@ -13,11 +14,17 @@ import (
 type MsgHandel struct {
 	// 存放每个MsgID所对应的处理方法
 	Apis map[uint32] ziface.IRouter
+	// 负责work取任务的消息队列
+	TaskQueue []chan ziface.IRequest
+	// 业务工作Work池的work数量
+	WorkerPoolSize uint32
 }
 
 func NewMsgHandel() ziface.IMsgHandle{
 	return &MsgHandel{
 		Apis:make(map[uint32] ziface.IRouter),
+		WorkerPoolSize: utils.ConfigObj.WorkerPoolSize,
+		TaskQueue: make([]chan ziface.IRequest, utils.ConfigObj.WorkerPoolSize),
 	}
 }
 
@@ -46,3 +53,34 @@ func (mh *MsgHandel) AddRouter(msgID uint32, router ziface.IRouter){
 	// 2. 增加msg与api的绑定关系
 	mh.Apis[msgID] = router
 }
+
+// 启动一个work工作池
+func (mh *MsgHandel) StartWorkerPool(){
+	for i :=0; i < int(mh.WorkerPoolSize); i++{
+		mh.TaskQueue[i] = make(chan ziface.IRequest, utils.ConfigObj.MaxWorkerTaskLen)
+		go mh.StartWorkerOneWorker(i, mh.TaskQueue[i])
+	}
+}
+
+// 启动一个work工作流程
+func (mh *MsgHandel) StartWorkerOneWorker(workID int, taskQueue chan ziface.IRequest){
+	fmt.Println("work ID=", workID, "is started...")
+
+	for{
+		select {
+			case request := <- taskQueue:
+				mh.DoMsgHandler(request)
+		}
+	}
+}
+
+// 将消息发送给消息任务队列处理
+func (mh *MsgHandel) SendMsgToTaskQueque(request ziface.IRequest) {
+	workID := request.GetConnection().GetConnID() % mh.WorkerPoolSize
+	mh.TaskQueue[workID] <- request
+}
+
+
+
+
+
